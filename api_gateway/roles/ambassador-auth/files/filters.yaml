@@ -1,0 +1,37 @@
+---
+apiVersion: getambassador.io/v1beta2
+kind: FilterPolicy
+metadata:
+  name: auth-policy
+spec:
+  rules:
+    - host: "*"
+      path: /x/*
+      public: false
+      filters:
+        - name: graf
+          namespace: ambassador
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: kibana-backend-authed
+  namespace: ambassador
+spec:
+  prefix: /x/kibana/
+  service: kibana-kibana:5601
+---
+apiVersion: getambassador.io/v2
+kind: Filter
+metadata:
+  name: graf
+spec:
+  External:
+    auth_service: http://prometheus-community-grafana.monitoring.svc.cluster.local/grafana
+    allow_request_body: false
+    status_on_error: # optional
+      code: 403 # optional; default is 403
+    # the following are used only if `proto: http`; they are ignored if `proto: grpc`
+    path_prefix: "" # optional; default is ""
+    allowed_request_headers: # optional; default is []
+      - "Cookie"
